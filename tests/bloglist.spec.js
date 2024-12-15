@@ -96,12 +96,21 @@ describe('Blog app', () => {
       })
 
       test('blogs can be deleted by the poster', async ({ page }) => {
-        const locator = await page.getByRole('button', { name: 'view' })
+        const locator = page.getByRole('button', { name: 'view' })
         await expect(locator).toHaveCount(3)
         await locator.nth(2).click()
         await page.getByRole('button', { name: 'like' }).first().click()
         await page.getByRole('button', { name: 'delete' }).first().click()
         await expect(locator).toHaveCount(2)
+      })
+
+      test('delete button only visible on own blogs', async ({ page }) => {
+        const locator = page.getByRole('button', { name: 'delete' })
+        await expect(locator).toHaveCount(0)
+        await page.getByRole('button', { name: 'view' }).first().click()
+        await expect(locator).toHaveCount(0)
+        await page.getByRole('button', { name: 'view' }).last().click()
+        await expect(locator).toHaveCount(1)
       })
     })
   })
