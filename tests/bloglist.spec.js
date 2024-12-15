@@ -18,6 +18,7 @@ describe('Blog app', () => {
         }
     })
     await page.goto('http://localhost:5173')
+    page.on('dialog', dialog => dialog.accept());
   })
 
   test('Login form is shown', async ({ page }) => {
@@ -82,6 +83,8 @@ describe('Blog app', () => {
         await page.getByRole('textbox').nth(1).fill('third test author')
         await page.getByRole('textbox').last().fill('third test url')
         await page.getByRole('button', { name: 'create' }).click()
+
+        await page.goto('http://localhost:5173')
       })
 
       test('blogs can be liked', async ({ page }) => {
@@ -90,6 +93,15 @@ describe('Blog app', () => {
         await expect(page.getByText('likes: 1')).toBeVisible()
         await page.getByRole('button', { name: 'like' }).first().click()
         await expect(page.getByText('likes: 2')).toBeVisible()
+      })
+
+      test('blogs can be deleted by the poster', async ({ page }) => {
+        const locator = await page.getByRole('button', { name: 'view' })
+        await expect(locator).toHaveCount(3)
+        await locator.nth(2).click()
+        await page.getByRole('button', { name: 'like' }).first().click()
+        await page.getByRole('button', { name: 'delete' }).first().click()
+        await expect(locator).toHaveCount(2)
       })
     })
   })
