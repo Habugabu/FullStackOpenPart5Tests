@@ -23,7 +23,7 @@ describe('Blog app', () => {
 
   test('Login form is shown', async ({ page }) => {
 
-    const locator = await page.getByText('login to application')
+    const locator = page.getByText('login to application')
     await expect(locator).toBeVisible()
     await expect(page.getByText('username')).toBeVisible()
     await expect(page.getByText('password')).toBeVisible()
@@ -61,6 +61,7 @@ describe('Blog app', () => {
     })
     describe('with existing blogs', () => {
       beforeEach(async ({ page }) => {
+
         await page.getByRole('button', { name: 'new blog' }).click()
         await page.getByRole('textbox').first().fill('first test title')
         await page.getByRole('textbox').nth(1).fill('first test author')
@@ -88,6 +89,7 @@ describe('Blog app', () => {
       })
 
       test('blogs can be liked', async ({ page }) => {
+        await page.goto('http://localhost:5173')
         await page.getByRole('button', { name: 'view' }).first().click()
         await page.getByRole('button', { name: 'like' }).first().click()
         await expect(page.getByText('likes: 1')).toBeVisible()
@@ -96,21 +98,49 @@ describe('Blog app', () => {
       })
 
       test('blogs can be deleted by the poster', async ({ page }) => {
+        await page.goto('http://localhost:5173')
         const locator = page.getByRole('button', { name: 'view' })
         await expect(locator).toHaveCount(3)
         await locator.nth(2).click()
-        await page.getByRole('button', { name: 'like' }).first().click()
         await page.getByRole('button', { name: 'delete' }).first().click()
         await expect(locator).toHaveCount(2)
       })
 
       test('delete button only visible on own blogs', async ({ page }) => {
+        await page.goto('http://localhost:5173')
         const locator = page.getByRole('button', { name: 'delete' })
         await expect(locator).toHaveCount(0)
         await page.getByRole('button', { name: 'view' }).first().click()
         await expect(locator).toHaveCount(0)
         await page.getByRole('button', { name: 'view' }).last().click()
         await expect(locator).toHaveCount(1)
+      })
+
+      test('blogs are sorted by likes in descending order', async ({ page }) => {
+        await page.goto('http://localhost:5173')
+        const viewButtons = page.getByRole('button', { name: 'view' })
+        await expect(viewButtons).toHaveCount(3)
+        await viewButtons.first().click()
+        await viewButtons.first().click()
+        await viewButtons.first().click()
+        const locator = page.getByText('likes:')
+        await expect(locator).toHaveCount(3)
+        await expect(locator.first()).toHaveText(/likes: 0/)
+        await expect(locator.nth(1)).toHaveText(/likes: 0/)
+        await expect(locator.last()).toHaveText(/likes: 0/)
+        const likeButtons = page.getByRole('button', { name: 'like' })
+        await likeButtons.last().click()
+        await expect(locator.first()).toHaveText(/likes: 1/)
+        await expect(locator.nth(1)).toHaveText(/likes: 0/)
+        await expect(locator.last()).toHaveText(/likes: 0/)
+        await likeButtons.last().click()
+        await expect(locator.first()).toHaveText(/likes: 1/)
+        await expect(locator.nth(1)).toHaveText(/likes: 1/)
+        await expect(locator.last()).toHaveText(/likes: 0/)
+        await likeButtons.nth(1).click()
+        await expect(locator.first()).toHaveText(/likes: 2/)
+        await expect(locator.nth(1)).toHaveText(/likes: 1/)
+        await expect(locator.last()).toHaveText(/likes: 0/)
       })
     })
   })
