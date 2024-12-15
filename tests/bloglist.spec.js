@@ -6,6 +6,13 @@ describe('Blog app', () => {
     await request.post('http://localhost:3003/api/users', {
         data: {
             username: 'foo',
+            name: 'foo',
+            password: 'foobar'
+        }
+    })
+    await request.post('http://localhost:3003/api/users', {
+        data: {
+            username: 'bar',
             name: 'bar',
             password: 'foobar'
         }
@@ -34,6 +41,22 @@ describe('Blog app', () => {
         await page.getByRole('textbox').last().fill('foobar')    
         await page.getByRole('button', { name: 'login' }).click()      
         await expect(page.getByText('login', { exact: true })).toBeVisible()
+    })
+  })
+  describe('When logged in', () => {
+    beforeEach(async ({ page }) => {
+        await page.getByRole('textbox').first().fill('foo')    
+        await page.getByRole('textbox').last().fill('foobar')    
+        await page.getByRole('button', { name: 'login' }).click()
+    })
+  
+    test('a new blog can be created', async ({ page }) => {
+        await page.getByRole('button', { name: 'new blog' }).click()
+        await page.getByRole('textbox').first().fill('test title')
+        await page.getByRole('textbox').nth(1).fill('test author')
+        await page.getByRole('textbox').last().fill('test url')
+        await page.getByRole('button', { name: 'create' }).click()
+        await expect(page.getByText('test title test author')).toBeVisible()
     })
   })
 })
